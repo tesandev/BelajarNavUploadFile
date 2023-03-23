@@ -1,18 +1,23 @@
 package com.tesan.belajarnavigationbuttomfloating
 
+import android.annotation.SuppressLint
+import android.app.Activity.RESULT_OK
 import android.app.ProgressDialog
 import android.content.Intent
+import android.database.Cursor
 import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
+import android.provider.OpenableColumns
 import android.util.Log
+import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.fragment.app.Fragment
 import com.tesan.belajarnavigationbuttomfloating.Helper.GetFileProperties
 import com.tesan.belajarnavigationbuttomfloating.ResponseModel.ResponseCRUD
-import com.tesan.belajarnavigationbuttomfloating.databinding.FragmentProfileDetailBinding
+import com.tesan.belajarnavigationbuttomfloating.databinding.FragmentFormPdfBinding
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -22,26 +27,28 @@ import retrofit2.Callback
 import retrofit2.Response
 import java.io.File
 
+class FormPdfFragment : Fragment() {
 
-class ProfileDetailFragment : Fragment() {
-
-    private lateinit var binding: FragmentProfileDetailBinding // deklerasi binding
-    private var selectedImageUri: Uri? = null
+    private val CHOOSE_PDF_FROM_DEVICE:Int = 100
+    private lateinit var binding:FragmentFormPdfBinding
+    private var selectedFileUri: Uri? = null
+    private var pdfName: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = FragmentProfileDetailBinding.inflate(inflater,container,false)
-        // Inflate the layout for this fragment
-        binding.btnSubmit.setOnClickListener{
-            val path = selectedImageUri?.let { it1 -> context?.let { it2 -> GetFileProperties.getFilePath(it2, it1) } }
-            val file = File(path)
-            Log.e("URI",file.toString())
+        binding = FragmentFormPdfBinding.inflate(inflater,container,false)
+
+        binding.btnSave.setOnClickListener {
+
+            val file = File(selectedFileUri?.path)
             val fileRequestBody = file.asRequestBody("multipart/form-data".toMediaTypeOrNull())
-            val filePart = MultipartBody.Part.createFormData("file", file.name, fileRequestBody)
-            val nameInput = binding.NamaProfile.text.toString()
+
+            val nameInput = binding.deskripsi.text.toString()
             val textRequestBody = nameInput.toRequestBody("text/plain".toMediaTypeOrNull())
+
+            val filePart = MultipartBody.Part.createFormData("file", file.name, fileRequestBody)
 
             val loading = ProgressDialog(context)
             loading.setMessage("Please wait...")
@@ -65,13 +72,13 @@ class ProfileDetailFragment : Fragment() {
                 }
 
             })
-
         }
-        binding.selectedFile.setOnClickListener {
-            val intent = Intent(Intent.ACTION_PICK)
-            intent.type = "image/*"
-            startActivityForResult(intent, 100)
 
+        binding.selectFile.setOnClickListener {
+            val intent = Intent(Intent.ACTION_PICK)
+            //intent.addCategory(Intent.CATEGORY_OPENABLE)
+            intent.type = "*/*"
+            startActivityForResult(intent, CHOOSE_PDF_FROM_DEVICE)
         }
         return binding.root
     }
@@ -79,10 +86,10 @@ class ProfileDetailFragment : Fragment() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if(requestCode == 100){
-            selectedImageUri = data?.data
-            binding.imageView.setImageURI(selectedImageUri)
-            val path = selectedImageUri?.let { it1 -> context?.let { it2 -> GetFileProperties.getFilePath(it2, it1) } }
-            Log.e("URI",selectedImageUri.toString()+" Path : "+path)
+            selectedFileUri = data?.data
+            binding.selectFile.text = selectedFileUri?.lastPathSegment
+            val path = selectedFileUri?.let { it1 -> context?.let { it2 -> GetFileProperties.getFilePath(it2, it1) } }
+            Log.e("FileUri",selectedFileUri.toString()+" Path : "+path)
         }
     }
 }

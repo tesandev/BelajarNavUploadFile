@@ -22,6 +22,7 @@ class MainActivity : AppCompatActivity() {
             when(it.itemId){
                 R.id.homeFragment -> ReplaceFragment(HomeFragment())
                 R.id.addFragment -> ReplaceFragment(ProfileDetailFragment())
+                R.id.addPdf -> ReplaceFragment(FormPdfFragment())
                 R.id.profileFragment -> ReplaceFragment(ProfileFragment())
             }
             true
