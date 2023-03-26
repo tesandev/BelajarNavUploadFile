@@ -29,7 +29,7 @@ import java.io.File
 
 class FormPdfFragment : Fragment() {
 
-    private val CHOOSE_PDF_FROM_DEVICE:Int = 100
+    private val CHOOSE_PDF_FROM_DEVICE:Int = 111
     private lateinit var binding:FragmentFormPdfBinding
     private var selectedFileUri: Uri? = null
     private var pdfName: String? = null
@@ -75,21 +75,21 @@ class FormPdfFragment : Fragment() {
         }
 
         binding.selectFile.setOnClickListener {
-            val intent = Intent(Intent.ACTION_PICK)
-            //intent.addCategory(Intent.CATEGORY_OPENABLE)
-            intent.type = "*/*"
-            startActivityForResult(intent, CHOOSE_PDF_FROM_DEVICE)
+            val intent = Intent(Intent.ACTION_GET_CONTENT)
+            intent.addCategory(Intent.CATEGORY_OPENABLE)
+            intent.type = "application/pdf"
+            startActivityForResult(intent,CHOOSE_PDF_FROM_DEVICE)
         }
         return binding.root
     }
+
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if(requestCode == 100){
             selectedFileUri = data?.data
             binding.selectFile.text = selectedFileUri?.lastPathSegment
-            val path = selectedFileUri?.let { it1 -> context?.let { it2 -> GetFileProperties.getFilePath(it2, it1) } }
-            Log.e("FileUri",selectedFileUri.toString()+" Path : "+path)
+
         }
     }
 }

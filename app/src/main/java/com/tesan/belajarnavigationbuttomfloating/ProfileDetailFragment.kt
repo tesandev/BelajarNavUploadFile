@@ -15,6 +15,7 @@ import com.tesan.belajarnavigationbuttomfloating.ResponseModel.ResponseCRUD
 import com.tesan.belajarnavigationbuttomfloating.databinding.FragmentProfileDetailBinding
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.Call
@@ -35,37 +36,19 @@ class ProfileDetailFragment : Fragment() {
         binding = FragmentProfileDetailBinding.inflate(inflater,container,false)
         // Inflate the layout for this fragment
         binding.btnSubmit.setOnClickListener{
-            val path = selectedImageUri?.let { it1 -> context?.let { it2 -> GetFileProperties.getFilePath(it2, it1) } }
-            val file = File(path)
-            Log.e("URI",file.toString())
-            val fileRequestBody = file.asRequestBody("multipart/form-data".toMediaTypeOrNull())
-            val filePart = MultipartBody.Part.createFormData("file", file.name, fileRequestBody)
-            val nameInput = binding.NamaProfile.text.toString()
-            val textRequestBody = nameInput.toRequestBody("text/plain".toMediaTypeOrNull())
-
-            val loading = ProgressDialog(context)
-            loading.setMessage("Please wait...")
-            loading.show()
-
-            // init retrofit
-            ApiConfig.instanceRetrofit.insert(textRequestBody,filePart).enqueue(object :Callback<ResponseCRUD>{
-                override fun onResponse(
-                    call: Call<ResponseCRUD>,
-                    response: Response<ResponseCRUD>
-                ) {
-                    loading.dismiss()
-                    Toast.makeText(context,response.body()?.message,Toast.LENGTH_SHORT).show()
-                    (activity as MainActivity).ReplaceFragment(HomeFragment())
-                }
-
-                override fun onFailure(call: Call<ResponseCRUD>, t: Throwable) {
-                    loading.dismiss()
-                    Toast.makeText(context,t.message,Toast.LENGTH_LONG).show()
-                    Log.e("ONFAIL",t.toString())
-                }
-
-            })
-
+            if (selectedImageUri == null){
+                Toast.makeText(context,"Silahkan pilih gambar terlebih dahulu",Toast.LENGTH_SHORT).show()
+            }else{
+                val path = selectedImageUri?.let { it1 -> context?.let { it2 -> GetFileProperties.getFilePath(it2, it1) } }
+                val file = File(path)
+                Log.e("URI",file.toString())
+                val fileRequestBody = file.asRequestBody("multipart/form-data".toMediaTypeOrNull())
+                val filePart = MultipartBody.Part.createFormData("file", file.name, fileRequestBody)
+                val nameInput = binding.NamaProfile.text.toString()
+                val textRequestBody = nameInput.toRequestBody("text/plain".toMediaTypeOrNull())
+                // init retrofit
+                insert(textRequestBody,filePart)
+            }
         }
         binding.selectedFile.setOnClickListener {
             val intent = Intent(Intent.ACTION_PICK)
@@ -84,5 +67,28 @@ class ProfileDetailFragment : Fragment() {
             val path = selectedImageUri?.let { it1 -> context?.let { it2 -> GetFileProperties.getFilePath(it2, it1) } }
             Log.e("URI",selectedImageUri.toString()+" Path : "+path)
         }
+    }
+
+    fun insert(textRequestBody: RequestBody,filePart: MultipartBody.Part){
+        val loading = ProgressDialog(context)
+        loading.setMessage("Please wait...")
+        loading.show()
+        ApiConfig.instanceRetrofit.insert(textRequestBody,filePart).enqueue(object :Callback<ResponseCRUD>{
+            override fun onResponse(
+                call: Call<ResponseCRUD>,
+                response: Response<ResponseCRUD>
+            ) {
+                loading.dismiss()
+                Toast.makeText(context,response.body()?.message,Toast.LENGTH_SHORT).show()
+                (activity as MainActivity).ReplaceFragment(HomeFragment())
+            }
+
+            override fun onFailure(call: Call<ResponseCRUD>, t: Throwable) {
+                loading.dismiss()
+                Toast.makeText(context,t.message,Toast.LENGTH_LONG).show()
+                Log.e("ONFAIL",t.toString())
+            }
+
+        })
     }
 }
